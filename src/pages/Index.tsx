@@ -7,8 +7,64 @@ import { LanguageSelector } from '@/components/LanguageSelector';
 import { CropSelector } from '@/components/CropSelector';
 import { ImageUpload } from '@/components/ImageUpload';
 import { ChatInterface } from '@/components/ChatInterface';
+import { CropCareCalendar } from '@/components/CropCareCalendar';
+import { WeatherWidget } from '@/components/WeatherWidget';
+import { Marketplace } from '@/components/Marketplace';
+import { Button } from '@/components/ui/button';
+import { MessageSquare, Calendar, Cloud, Store } from 'lucide-react';
 
 type AppStep = 'welcome' | 'language' | 'crop' | 'image' | 'chat';
+type DashboardTab = 'chat' | 'calendar' | 'weather' | 'marketplace';
+
+const ChatDashboard = ({ language, crop, imageData }: { language: Language; crop: Crop; imageData: string }) => {
+  const [activeTab, setActiveTab] = useState<DashboardTab>('chat');
+  const isHindi = language.code === 'hi';
+
+  const tabs = [
+    { id: 'chat' as const, icon: MessageSquare, label: isHindi ? 'चैट' : 'Chat' },
+    { id: 'calendar' as const, icon: Calendar, label: isHindi ? 'कैलेंडर' : 'Calendar' },
+    { id: 'weather' as const, icon: Cloud, label: isHindi ? 'मौसम' : 'Weather' },
+    { id: 'marketplace' as const, icon: Store, label: isHindi ? 'बाज़ार' : 'Shop' },
+  ];
+
+  return (
+    <div className="pt-4">
+      {/* Tab Navigation */}
+      <div className="max-w-3xl mx-auto px-4 mb-4">
+        <div className="flex gap-2 overflow-x-auto pb-2">
+          {tabs.map((tab) => (
+            <Button
+              key={tab.id}
+              variant={activeTab === tab.id ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActiveTab(tab.id)}
+              className="flex-shrink-0"
+            >
+              <tab.icon className="w-4 h-4 mr-2" />
+              {tab.label}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      {/* Tab Content */}
+      <div className="max-w-3xl mx-auto px-4">
+        {activeTab === 'chat' && (
+          <ChatInterface language={language} crop={crop} imageData={imageData} />
+        )}
+        {activeTab === 'calendar' && (
+          <CropCareCalendar language={language} crop={crop} />
+        )}
+        {activeTab === 'weather' && (
+          <WeatherWidget language={language} crop={crop} />
+        )}
+        {activeTab === 'marketplace' && (
+          <Marketplace language={language} crop={crop} />
+        )}
+      </div>
+    </div>
+  );
+};
 
 const Index = () => {
   const [currentStep, setCurrentStep] = useState<AppStep>('welcome');
@@ -99,13 +155,11 @@ const Index = () => {
         )}
 
         {currentStep === 'chat' && selectedLanguage && selectedCrop && uploadedImage && (
-          <div className="pt-4">
-            <ChatInterface
-              language={selectedLanguage}
-              crop={selectedCrop}
-              imageData={uploadedImage}
-            />
-          </div>
+          <ChatDashboard
+            language={selectedLanguage}
+            crop={selectedCrop}
+            imageData={uploadedImage}
+          />
         )}
       </main>
     </div>
