@@ -3,11 +3,12 @@ import { Language } from '@/lib/languages';
 import { Crop } from '@/lib/crops';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Send, Mic, MicOff, Loader2, Leaf, Pill, Droplets, Volume2 } from 'lucide-react';
+import { Send, Mic, MicOff, Loader2, Leaf, Pill, Droplets } from 'lucide-react';
 import { useSpeech } from '@/hooks/useSpeech';
 import { ChatMessage, Message } from './ChatMessage';
 import { getTranslations } from '@/lib/translations';
-import { getDefaultDisease, formatDiagnosis, getFollowUpResponse } from '@/lib/diseaseData';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface ChatInterfaceProps {
   language: Language;
@@ -19,6 +20,7 @@ export const ChatInterface = ({ language, crop, imageData }: ChatInterfaceProps)
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [currentDiagnosis, setCurrentDiagnosis] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { speak, isSpeaking, startListening, stopListening, isListening } = useSpeech({ 
     lang: language.speechCode 
@@ -34,13 +36,30 @@ export const ChatInterface = ({ language, crop, imageData }: ChatInterfaceProps)
 
   const t = getTranslations(language);
 
-  // Initial diagnosis when component mounts
+  // Initial AI diagnosis when component mounts
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const analyzeCrop = async () => {
       setIsLoading(true);
-      setTimeout(() => {
-        const disease = getDefaultDisease(crop.id);
-        const diagnosis = formatDiagnosis(disease, crop, language);
+      
+      try {
+        const { data, error } = await supabase.functions.invoke('analyze-crop', {
+          body: {
+            imageBase64: imageData,
+            cropName: crop.name,
+            cropNameHindi: crop.nameHindi,
+            language: language.code
+          }
+        });
+
+        if (error) throw error;
+
+        if (data.error) {
+          throw new Error(data.error);
+        }
+
+        const diagnosis = data.analysis;
+        setCurrentDiagnosis(diagnosis);
+        
         const assistantMessage: Message = {
           id: Date.now().toString(),
           role: 'assistant',
@@ -48,17 +67,36 @@ export const ChatInterface = ({ language, crop, imageData }: ChatInterfaceProps)
           timestamp: new Date(),
         };
         setMessages([assistantMessage]);
+        
+        // Auto-speak the completion message
+        const completionMsg = language.code === 'hi' 
+          ? `${crop.nameHindi} का विश्लेषण पूरा हुआ` 
+          : `Analysis complete for ${crop.name}`;
+        speak(completionMsg);
+        
+      } catch (error: any) {
+        console.error('Error analyzing crop:', error);
+        toast.error(language.code === 'hi' ? 'विश्लेषण में त्रुटि' : 'Analysis failed');
+        
+        const errorMessage: Message = {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: language.code === 'hi' 
+            ? 'माफ़ करें, फसल का विश्लेषण करने में समस्या हुई। कृपया पुनः प्रयास करें।'
+            : 'Sorry, there was an issue analyzing the crop. Please try again.',
+          timestamp: new Date(),
+        };
+        setMessages([errorMessage]);
+      } finally {
         setIsLoading(false);
-        // Auto-speak the diagnosis
-        speak(language.code === 'hi' ? `${crop.nameHindi} का विश्लेषण पूरा हुआ` : `Analysis complete for ${crop.name}`);
-      }, 2000);
-    }, 500);
+      }
+    };
 
-    return () => clearTimeout(timer);
-  }, [crop, language]);
+    analyzeCrop();
+  }, [crop, language, imageData]);
 
-  const handleSendMessage = () => {
-    if (!inputText.trim()) return;
+  const handleSendMessage = async () => {
+    if (!inputText.trim() || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -68,21 +106,51 @@ export const ChatInterface = ({ language, crop, imageData }: ChatInterfaceProps)
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    const userQuery = inputText;
     setInputText('');
     setIsLoading(true);
 
-    // Generate contextual AI response
-    setTimeout(() => {
-      const response = getFollowUpResponse(inputText, crop, language);
+    try {
+      const { data, error } = await supabase.functions.invoke('crop-chat', {
+        body: {
+          message: userQuery,
+          cropName: crop.name,
+          cropNameHindi: crop.nameHindi,
+          language: language.code,
+          previousDiagnosis: currentDiagnosis
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: response,
+        content: data.reply,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, assistantMessage]);
+      
+    } catch (error: any) {
+      console.error('Error getting response:', error);
+      toast.error(language.code === 'hi' ? 'जवाब प्राप्त करने में त्रुटि' : 'Failed to get response');
+      
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: language.code === 'hi'
+          ? 'माफ़ करें, जवाब प्राप्त करने में समस्या हुई। कृपया पुनः प्रयास करें।'
+          : 'Sorry, there was an issue getting a response. Please try again.',
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   const handleVoiceInput = () => {
@@ -93,11 +161,6 @@ export const ChatInterface = ({ language, crop, imageData }: ChatInterfaceProps)
         setInputText(text);
       });
     }
-  };
-
-  const handleSpeakResponse = (text: string) => {
-    const cleanText = text.replace(/\*\*/g, '').replace(/[#•🔍🦠📋⚠️💊🛡️🌱⚗️💰⏰]/g, '').replace(/\n+/g, '. ');
-    speak(cleanText);
   };
 
   const texts = {
@@ -181,6 +244,7 @@ export const ChatInterface = ({ language, crop, imageData }: ChatInterfaceProps)
           onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
           placeholder={texts.placeholder}
           className="flex-1 h-12 text-lg"
+          disabled={isLoading}
         />
 
         <Button
