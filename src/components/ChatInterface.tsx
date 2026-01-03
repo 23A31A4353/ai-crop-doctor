@@ -3,67 +3,17 @@ import { Language } from '@/lib/languages';
 import { Crop } from '@/lib/crops';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Send, Mic, MicOff, Loader2, Leaf, Pill, Droplets } from 'lucide-react';
+import { Send, Mic, MicOff, Loader2, Leaf, Pill, Droplets, Volume2 } from 'lucide-react';
 import { useSpeech } from '@/hooks/useSpeech';
 import { ChatMessage, Message } from './ChatMessage';
+import { getTranslations } from '@/lib/translations';
+import { getDefaultDisease, formatDiagnosis, getFollowUpResponse } from '@/lib/diseaseData';
 
 interface ChatInterfaceProps {
   language: Language;
   crop: Crop;
   imageData: string;
 }
-
-// Mock diagnosis response for demo
-const getMockDiagnosis = (crop: Crop, language: Language): string => {
-  const diagnoses = {
-    hi: `🔍 **${crop.nameHindi} की समस्या का विश्लेषण**
-
-मैंने आपकी तस्वीर का विश्लेषण किया है। यहाँ मेरे निष्कर्ष हैं:
-
-**संभावित समस्या:** पत्ती धब्बा रोग (Leaf Spot Disease)
-
-**लक्षण:**
-• पत्तियों पर भूरे धब्बे
-• पत्तियों का पीला पड़ना
-• विकास में रुकावट
-
-**उपचार के तरीके:**
-1. 🌿 प्रभावित पत्तियों को हटाएं
-2. 💧 सुबह के समय पानी दें
-3. 🧪 कॉपर ऑक्सीक्लोराइड का छिड़काव करें
-
-**सुझाए गए उर्वरक:**
-• NPK (10:26:26) - 50 किग्रा/एकड़
-• यूरिया - 25 किग्रा/एकड़
-• जिंक सल्फेट - 5 किग्रा/एकड़
-
-क्या आप अधिक जानकारी चाहते हैं?`,
-    en: `🔍 **Analysis of ${crop.name} Problem**
-
-I've analyzed your image. Here are my findings:
-
-**Likely Issue:** Leaf Spot Disease
-
-**Symptoms Detected:**
-• Brown spots on leaves
-• Yellowing of foliage
-• Stunted growth patterns
-
-**Recovery Methods:**
-1. 🌿 Remove affected leaves immediately
-2. 💧 Water in the morning to allow drying
-3. 🧪 Apply Copper Oxychloride spray
-
-**Recommended Fertilizers:**
-• NPK (10:26:26) - 50 kg/acre
-• Urea - 25 kg/acre
-• Zinc Sulphate - 5 kg/acre
-
-Would you like more detailed information on any of these treatments?`,
-  };
-
-  return language.code === 'hi' ? diagnoses.hi : diagnoses.en;
-};
 
 export const ChatInterface = ({ language, crop, imageData }: ChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -82,12 +32,15 @@ export const ChatInterface = ({ language, crop, imageData }: ChatInterfaceProps)
     scrollToBottom();
   }, [messages]);
 
+  const t = getTranslations(language);
+
   // Initial diagnosis when component mounts
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(true);
       setTimeout(() => {
-        const diagnosis = getMockDiagnosis(crop, language);
+        const disease = getDefaultDisease(crop.id);
+        const diagnosis = formatDiagnosis(disease, crop, language);
         const assistantMessage: Message = {
           id: Date.now().toString(),
           role: 'assistant',
@@ -96,6 +49,8 @@ export const ChatInterface = ({ language, crop, imageData }: ChatInterfaceProps)
         };
         setMessages([assistantMessage]);
         setIsLoading(false);
+        // Auto-speak the diagnosis
+        speak(language.code === 'hi' ? `${crop.nameHindi} का विश्लेषण पूरा हुआ` : `Analysis complete for ${crop.name}`);
       }, 2000);
     }, 500);
 
@@ -116,29 +71,13 @@ export const ChatInterface = ({ language, crop, imageData }: ChatInterfaceProps)
     setInputText('');
     setIsLoading(true);
 
-    // Simulate AI response
+    // Generate contextual AI response
     setTimeout(() => {
-      const responses = {
-        hi: `धन्यवाद आपके सवाल के लिए! ${crop.nameHindi} की देखभाल के लिए:
-
-• नियमित सिंचाई करें
-• जैविक खाद का उपयोग करें
-• कीट नियंत्रण के लिए नीम का तेल उपयोग करें
-
-क्या आपको और सहायता चाहिए?`,
-        en: `Thank you for your question! For ${crop.name} care:
-
-• Maintain regular irrigation
-• Use organic fertilizers
-• Apply neem oil for pest control
-
-Do you need any further assistance?`,
-      };
-
+      const response = getFollowUpResponse(inputText, crop, language);
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: language.code === 'hi' ? responses.hi : responses.en,
+        content: response,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, assistantMessage]);
@@ -156,9 +95,14 @@ Do you need any further assistance?`,
     }
   };
 
+  const handleSpeakResponse = (text: string) => {
+    const cleanText = text.replace(/\*\*/g, '').replace(/[#•🔍🦠📋⚠️💊🛡️🌱⚗️💰⏰]/g, '').replace(/\n+/g, '. ');
+    speak(cleanText);
+  };
+
   const texts = {
-    placeholder: language.code === 'hi' ? 'अपना सवाल लिखें...' : 'Type your question...',
-    analyzing: language.code === 'hi' ? 'विश्लेषण हो रहा है...' : 'Analyzing...',
+    placeholder: t.typeQuestion,
+    analyzing: t.analyzing,
   };
 
   return (
