@@ -12,6 +12,7 @@ import {
 } from '@/lib/marketplace';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { getTranslations } from '@/lib/translations';
 import { 
   Store, 
   Search, 
@@ -20,11 +21,11 @@ import {
   Phone, 
   Clock, 
   ShoppingCart,
-  Filter,
-  ChevronRight,
+  Navigation,
   Check,
   X
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface MarketplaceProps {
   language: Language;
@@ -38,7 +39,7 @@ export const Marketplace = ({ language, crop }: MarketplaceProps) => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [cart, setCart] = useState<{ productId: string; quantity: number }[]>([]);
-  const isHindi = language.code === 'hi';
+  const t = getTranslations(language);
 
   const products = getProductsByCategory(selectedCategory).filter(p => 
     p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -63,22 +64,20 @@ export const Marketplace = ({ language, crop }: MarketplaceProps) => {
     return cart.find(item => item.productId === productId)?.quantity || 0;
   };
 
-  const texts = {
-    title: isHindi ? 'कृषि बाज़ार' : 'Agri Marketplace',
-    subtitle: isHindi ? 'पास की दुकानें और उत्पाद खोजें' : 'Find nearby shops and products',
-    shops: isHindi ? 'दुकानें' : 'Shops',
-    products: isHindi ? 'उत्पाद' : 'Products',
-    search: isHindi ? 'उत्पाद खोजें...' : 'Search products...',
-    open: isHindi ? 'खुला है' : 'Open',
-    closed: isHindi ? 'बंद है' : 'Closed',
-    inStock: isHindi ? 'उपलब्ध' : 'In Stock',
-    outOfStock: isHindi ? 'उपलब्ध नहीं' : 'Out of Stock',
-    addToCart: isHindi ? 'कार्ट में जोड़ें' : 'Add to Cart',
-    added: isHindi ? 'जोड़ा गया' : 'Added',
-    call: isHindi ? 'कॉल करें' : 'Call',
-    directions: isHindi ? 'दिशा' : 'Directions',
-    recommended: isHindi ? 'आपकी फसल के लिए अनुशंसित' : 'Recommended for your crop',
-    cartItems: isHindi ? 'कार्ट में' : 'in cart',
+  const openDirections = (shop: Shop) => {
+    // Open Google Maps with directions
+    const address = encodeURIComponent(shop.address);
+    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${address}`;
+    window.open(mapsUrl, '_blank');
+    toast.success(language.code === 'hi' ? 'मैप खुल रहा है...' : 'Opening map...');
+  };
+
+  const callShop = (phone: string) => {
+    window.location.href = `tel:${phone}`;
+  };
+
+  const getLocalizedText = (en: string, hi: string) => {
+    return language.code === 'hi' ? hi : en;
   };
 
   const renderShopCard = (shop: Shop) => (
@@ -89,7 +88,7 @@ export const Marketplace = ({ language, crop }: MarketplaceProps) => {
             <Store className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h3 className="font-semibold">{isHindi ? shop.nameHindi : shop.name}</h3>
+            <h3 className="font-semibold">{getLocalizedText(shop.name, shop.nameHindi)}</h3>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
               {shop.rating}
@@ -101,14 +100,14 @@ export const Marketplace = ({ language, crop }: MarketplaceProps) => {
             ? 'bg-primary/20 text-primary' 
             : 'bg-muted text-muted-foreground'
         }`}>
-          {shop.isOpen ? texts.open : texts.closed}
+          {shop.isOpen ? t.open : t.closed}
         </span>
       </div>
       
       <div className="space-y-2 text-sm text-muted-foreground mb-4">
         <div className="flex items-center gap-2">
           <MapPin className="w-4 h-4" />
-          {isHindi ? shop.addressHindi : shop.address} • {isHindi ? shop.distanceHindi : shop.distance}
+          {getLocalizedText(shop.address, shop.addressHindi)} • {getLocalizedText(shop.distance, shop.distanceHindi)}
         </div>
         <div className="flex items-center gap-2">
           <Clock className="w-4 h-4" />
@@ -117,13 +116,22 @@ export const Marketplace = ({ language, crop }: MarketplaceProps) => {
       </div>
 
       <div className="flex gap-2">
-        <Button size="sm" variant="outline" className="flex-1">
+        <Button 
+          size="sm" 
+          variant="outline" 
+          className="flex-1"
+          onClick={() => callShop(shop.phone)}
+        >
           <Phone className="w-4 h-4 mr-1" />
-          {texts.call}
+          {t.call}
         </Button>
-        <Button size="sm" className="flex-1">
-          <MapPin className="w-4 h-4 mr-1" />
-          {texts.directions}
+        <Button 
+          size="sm" 
+          className="flex-1"
+          onClick={() => openDirections(shop)}
+        >
+          <Navigation className="w-4 h-4 mr-1" />
+          {t.directions}
         </Button>
       </div>
     </div>
@@ -138,10 +146,10 @@ export const Marketplace = ({ language, crop }: MarketplaceProps) => {
         <div className="flex items-start gap-4">
           <div className="text-4xl">{product.image}</div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold">{isHindi ? product.nameHindi : product.name}</h3>
+            <h3 className="font-semibold">{getLocalizedText(product.name, product.nameHindi)}</h3>
             <p className="text-sm text-muted-foreground mb-1">{product.brand}</p>
             <p className="text-xs text-muted-foreground line-clamp-2">
-              {isHindi ? product.descriptionHindi : product.description}
+              {getLocalizedText(product.description, product.descriptionHindi)}
             </p>
           </div>
         </div>
@@ -150,28 +158,32 @@ export const Marketplace = ({ language, crop }: MarketplaceProps) => {
           <div>
             <div className="text-lg font-bold text-primary">₹{product.price}</div>
             <div className="text-xs text-muted-foreground">
-              {isHindi ? product.unitHindi : product.unit}
+              {getLocalizedText(product.unit, product.unitHindi)}
             </div>
           </div>
           <div className="flex items-center gap-2">
             {product.inStock ? (
               <span className="flex items-center gap-1 text-xs text-primary">
                 <Check className="w-3 h-3" />
-                {texts.inStock}
+                {t.inStock}
               </span>
             ) : (
               <span className="flex items-center gap-1 text-xs text-muted-foreground">
                 <X className="w-3 h-3" />
-                {texts.outOfStock}
+                {t.outOfStock}
               </span>
             )}
           </div>
         </div>
 
         {shop && (
-          <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
+          <div 
+            className="flex items-center gap-2 mt-3 text-xs text-muted-foreground cursor-pointer hover:text-primary"
+            onClick={() => openDirections(shop)}
+          >
             <Store className="w-3 h-3" />
-            {isHindi ? shop.nameHindi : shop.name} • {isHindi ? shop.distanceHindi : shop.distance}
+            {getLocalizedText(shop.name, shop.nameHindi)} • {getLocalizedText(shop.distance, shop.distanceHindi)}
+            <Navigation className="w-3 h-3 ml-auto" />
           </div>
         )}
 
@@ -182,7 +194,7 @@ export const Marketplace = ({ language, crop }: MarketplaceProps) => {
           onClick={() => addToCart(product.id)}
         >
           <ShoppingCart className="w-4 h-4 mr-1" />
-          {cartQty > 0 ? `${texts.added} (${cartQty})` : texts.addToCart}
+          {cartQty > 0 ? `${t.added} (${cartQty})` : t.addToCart}
         </Button>
       </div>
     );
@@ -196,8 +208,8 @@ export const Marketplace = ({ language, crop }: MarketplaceProps) => {
           <Store className="w-6 h-6 text-secondary" />
         </div>
         <div className="flex-1">
-          <h2 className="text-xl font-bold">{texts.title}</h2>
-          <p className="text-sm text-muted-foreground">{texts.subtitle}</p>
+          <h2 className="text-xl font-bold">{t.marketplace}</h2>
+          <p className="text-sm text-muted-foreground">{t.marketSubtitle}</p>
         </div>
         {cart.length > 0 && (
           <Button size="sm" variant="outline" className="relative">
@@ -216,14 +228,14 @@ export const Marketplace = ({ language, crop }: MarketplaceProps) => {
           onClick={() => setViewMode('products')}
           className="flex-1"
         >
-          🛒 {texts.products}
+          🛒 {t.products}
         </Button>
         <Button
           variant={viewMode === 'shops' ? 'default' : 'outline'}
           onClick={() => setViewMode('shops')}
           className="flex-1"
         >
-          🏪 {texts.shops}
+          🏪 {t.shops}
         </Button>
       </div>
 
@@ -233,7 +245,7 @@ export const Marketplace = ({ language, crop }: MarketplaceProps) => {
           <div className="relative mb-4">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder={texts.search}
+              placeholder={t.searchProducts}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -250,7 +262,7 @@ export const Marketplace = ({ language, crop }: MarketplaceProps) => {
                 onClick={() => setSelectedCategory(cat.id)}
                 className="flex-shrink-0"
               >
-                {cat.icon} <span className="ml-1">{isHindi ? cat.nameHindi : cat.name}</span>
+                {cat.icon} <span className="ml-1">{getLocalizedText(cat.name, cat.nameHindi)}</span>
               </Button>
             ))}
           </div>

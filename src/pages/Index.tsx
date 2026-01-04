@@ -12,7 +12,8 @@ import { WeatherWidget } from '@/components/WeatherWidget';
 import { Marketplace } from '@/components/Marketplace';
 import { DiagnosisHistory } from '@/components/DiagnosisHistory';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, Calendar, Cloud, Store, History } from 'lucide-react';
+import { getTranslations } from '@/lib/translations';
+import { MessageSquare, Calendar, Cloud, Store } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 type AppStep = 'welcome' | 'language' | 'crop' | 'image' | 'chat' | 'history';
@@ -20,13 +21,13 @@ type DashboardTab = 'chat' | 'calendar' | 'weather' | 'marketplace';
 
 const ChatDashboard = ({ language, crop, imageData }: { language: Language; crop: Crop; imageData: string }) => {
   const [activeTab, setActiveTab] = useState<DashboardTab>('chat');
-  const isHindi = language.code === 'hi';
+  const t = getTranslations(language);
 
   const tabs = [
-    { id: 'chat' as const, icon: MessageSquare, label: isHindi ? 'चैट' : 'Chat' },
-    { id: 'calendar' as const, icon: Calendar, label: isHindi ? 'कैलेंडर' : 'Calendar' },
-    { id: 'weather' as const, icon: Cloud, label: isHindi ? 'मौसम' : 'Weather' },
-    { id: 'marketplace' as const, icon: Store, label: isHindi ? 'बाज़ार' : 'Shop' },
+    { id: 'chat' as const, icon: MessageSquare, label: t.chat },
+    { id: 'calendar' as const, icon: Calendar, label: t.calendar },
+    { id: 'weather' as const, icon: Cloud, label: t.weather },
+    { id: 'marketplace' as const, icon: Store, label: t.shop },
   ];
 
   return (

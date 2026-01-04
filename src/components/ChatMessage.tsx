@@ -6,6 +6,7 @@ export interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  imageUrl?: string;
 }
 
 interface ChatMessageProps {
@@ -40,6 +41,16 @@ export const ChatMessage = ({ message, onSpeak, isSpeaking }: ChatMessageProps) 
           }`}
         >
           <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+          
+          {message.imageUrl && (
+            <div className="mt-3">
+              <img 
+                src={message.imageUrl} 
+                alt="Disease progression visualization"
+                className="rounded-lg max-w-full h-auto"
+              />
+            </div>
+          )}
         </div>
 
         {!isUser && (

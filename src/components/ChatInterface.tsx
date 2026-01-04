@@ -3,7 +3,7 @@ import { Language } from '@/lib/languages';
 import { Crop } from '@/lib/crops';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Send, Mic, MicOff, Loader2, Leaf, Pill, Droplets } from 'lucide-react';
+import { Send, Mic, MicOff, Loader2, Leaf, Pill, Droplets, Film } from 'lucide-react';
 import { useSpeech } from '@/hooks/useSpeech';
 import { ChatMessage, Message } from './ChatMessage';
 import { getTranslations } from '@/lib/translations';
@@ -23,11 +23,18 @@ export const ChatInterface = ({ language, crop, imageData }: ChatInterfaceProps)
   const [isLoading, setIsLoading] = useState(false);
   const [currentDiagnosis, setCurrentDiagnosis] = useState('');
   const [diagnosisSaved, setDiagnosisSaved] = useState(false);
+  const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
+  const [progressionImage, setProgressionImage] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { speak, isSpeaking, startListening, stopListening, isListening } = useSpeech({ 
     lang: language.speechCode 
   });
   const { user } = useAuth();
+  const t = getTranslations(language);
+
+  const getLocalizedText = (en: string, hi: string) => {
+    return language.code === 'hi' ? hi : en;
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -36,8 +43,6 @@ export const ChatInterface = ({ language, crop, imageData }: ChatInterfaceProps)
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  const t = getTranslations(language);
 
   // Save diagnosis to history
   const saveDiagnosis = async (diagnosis: string) => {
@@ -49,8 +54,8 @@ export const ChatInterface = ({ language, crop, imageData }: ChatInterfaceProps)
         .insert({
           user_id: user.id,
           crop_id: crop.id,
-          crop_name: language.code === 'hi' ? crop.nameHindi : crop.name,
-          image_url: imageData.startsWith('data:') ? null : imageData, // Don't store base64 to save space
+          crop_name: getLocalizedText(crop.name, crop.nameHindi),
+          image_url: imageData.startsWith('data:') ? null : imageData,
           diagnosis: diagnosis,
           language: language.code,
         });
@@ -59,6 +64,65 @@ export const ChatInterface = ({ language, crop, imageData }: ChatInterfaceProps)
       setDiagnosisSaved(true);
     } catch (error) {
       console.error('Error saving diagnosis:', error);
+    }
+  };
+
+  // Generate disease progression visualization
+  const generateDiseaseProgression = async () => {
+    if (!currentDiagnosis) {
+      toast.error(getLocalizedText(
+        'Please wait for diagnosis to complete',
+        'कृपया निदान पूरा होने की प्रतीक्षा करें'
+      ));
+      return;
+    }
+
+    setIsGeneratingVideo(true);
+    toast.info(getLocalizedText(
+      'Generating disease progression visualization...',
+      'रोग प्रगति दृश्य बनाया जा रहा है...'
+    ));
+
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-disease-video', {
+        body: {
+          imageBase64: imageData,
+          cropName: crop.name,
+          diseaseName: 'detected disease',
+          language: language.code
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.imageUrl) {
+        setProgressionImage(data.imageUrl);
+        
+        const progressMessage: Message = {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: getLocalizedText(
+            '🎬 Disease Progression Visualization\n\nThis 4-panel visualization shows:\n1. Early Stage - Initial symptoms\n2. Progression - Disease spreading\n3. Advanced Stage - Severe damage\n4. Recovery - After treatment\n\n' + (data.description || ''),
+            '🎬 रोग प्रगति दृश्य\n\nयह 4-पैनल दृश्य दिखाता है:\n1. प्रारंभिक चरण - शुरुआती लक्षण\n2. प्रगति - रोग फैलना\n3. उन्नत चरण - गंभीर क्षति\n4. ठीक होना - उपचार के बाद\n\n' + (data.description || '')
+          ),
+          timestamp: new Date(),
+          imageUrl: data.imageUrl,
+        };
+        setMessages(prev => [...prev, progressMessage]);
+        
+        toast.success(getLocalizedText(
+          'Visualization generated!',
+          'दृश्य बनाया गया!'
+        ));
+      }
+    } catch (error: any) {
+      console.error('Error generating visualization:', error);
+      toast.error(getLocalizedText(
+        'Failed to generate visualization',
+        'दृश्य बनाने में विफल'
+      ));
+    } finally {
+      setIsGeneratingVideo(false);
     }
   };
 
@@ -97,22 +161,24 @@ export const ChatInterface = ({ language, crop, imageData }: ChatInterfaceProps)
         // Save diagnosis for logged-in users
         await saveDiagnosis(diagnosis);
         
-        // Auto-speak the completion message
-        const completionMsg = language.code === 'hi' 
-          ? `${crop.nameHindi} का विश्लेषण पूरा हुआ` 
-          : `Analysis complete for ${crop.name}`;
+        // Auto-speak the completion message in selected language
+        const completionMsg = getLocalizedText(
+          `Analysis complete for ${crop.name}`,
+          `${crop.nameHindi} का विश्लेषण पूरा हुआ`
+        );
         speak(completionMsg);
         
       } catch (error: any) {
         console.error('Error analyzing crop:', error);
-        toast.error(language.code === 'hi' ? 'विश्लेषण में त्रुटि' : 'Analysis failed');
+        toast.error(getLocalizedText('Analysis failed', 'विश्लेषण में त्रुटि'));
         
         const errorMessage: Message = {
           id: Date.now().toString(),
           role: 'assistant',
-          content: language.code === 'hi' 
-            ? 'माफ़ करें, फसल का विश्लेषण करने में समस्या हुई। कृपया पुनः प्रयास करें।'
-            : 'Sorry, there was an issue analyzing the crop. Please try again.',
+          content: getLocalizedText(
+            'Sorry, there was an issue analyzing the crop. Please try again.',
+            'माफ़ करें, फसल का विश्लेषण करने में समस्या हुई। कृपया पुनः प्रयास करें।'
+          ),
           timestamp: new Date(),
         };
         setMessages([errorMessage]);
@@ -166,14 +232,15 @@ export const ChatInterface = ({ language, crop, imageData }: ChatInterfaceProps)
       
     } catch (error: any) {
       console.error('Error getting response:', error);
-      toast.error(language.code === 'hi' ? 'जवाब प्राप्त करने में त्रुटि' : 'Failed to get response');
+      toast.error(getLocalizedText('Failed to get response', 'जवाब प्राप्त करने में त्रुटि'));
       
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: language.code === 'hi'
-          ? 'माफ़ करें, जवाब प्राप्त करने में समस्या हुई। कृपया पुनः प्रयास करें।'
-          : 'Sorry, there was an issue getting a response. Please try again.',
+        content: getLocalizedText(
+          'Sorry, there was an issue getting a response. Please try again.',
+          'माफ़ करें, जवाब प्राप्त करने में समस्या हुई। कृपया पुनः प्रयास करें।'
+        ),
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -192,11 +259,6 @@ export const ChatInterface = ({ language, crop, imageData }: ChatInterfaceProps)
     }
   };
 
-  const texts = {
-    placeholder: t.typeQuestion,
-    analyzing: t.analyzing,
-  };
-
   return (
     <div className="w-full max-w-3xl mx-auto p-4 md:p-6 animate-slide-up">
       {/* Header */}
@@ -209,10 +271,10 @@ export const ChatInterface = ({ language, crop, imageData }: ChatInterfaceProps)
         <div className="flex-1">
           <h3 className="font-semibold text-lg flex items-center gap-2">
             <span className="text-2xl">{crop.icon}</span>
-            {language.code === 'hi' ? crop.nameHindi : crop.name}
+            {getLocalizedText(crop.name, crop.nameHindi)}
           </h3>
           <p className="text-sm text-muted-foreground">
-            {language.code === 'hi' ? 'AI फसल सहायक' : 'AI Crop Assistant'}
+            {t.aiAssistant}
           </p>
         </div>
         <div className="flex gap-2">
@@ -226,6 +288,28 @@ export const ChatInterface = ({ language, crop, imageData }: ChatInterfaceProps)
             <Droplets className="w-5 h-5 text-accent" />
           </div>
         </div>
+      </div>
+
+      {/* Disease Progression Button */}
+      <div className="mb-4">
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={generateDiseaseProgression}
+          disabled={isGeneratingVideo || isLoading}
+        >
+          {isGeneratingVideo ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              {getLocalizedText('Generating...', 'बनाया जा रहा है...')}
+            </>
+          ) : (
+            <>
+              <Film className="w-4 h-4 mr-2" />
+              {getLocalizedText('View Disease Progression', 'रोग प्रगति देखें')}
+            </>
+          )}
+        </Button>
       </div>
 
       {/* Chat Messages */}
@@ -247,7 +331,7 @@ export const ChatInterface = ({ language, crop, imageData }: ChatInterfaceProps)
             <div className="bg-card border border-border rounded-2xl rounded-tl-sm px-4 py-3">
               <div className="flex items-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span className="text-muted-foreground">{texts.analyzing}</span>
+                <span className="text-muted-foreground">{t.analyzing}</span>
               </div>
             </div>
           </div>
@@ -271,7 +355,7 @@ export const ChatInterface = ({ language, crop, imageData }: ChatInterfaceProps)
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-          placeholder={texts.placeholder}
+          placeholder={t.typeQuestion}
           className="flex-1 h-12 text-lg"
           disabled={isLoading}
         />

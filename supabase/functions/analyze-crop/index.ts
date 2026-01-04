@@ -5,6 +5,71 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Language code to language name mapping
+const languageNames: Record<string, string> = {
+  'hi': 'Hindi',
+  'en': 'English',
+  'ta': 'Tamil',
+  'te': 'Telugu',
+  'kn': 'Kannada',
+  'ml': 'Malayalam',
+  'bn': 'Bengali',
+  'gu': 'Gujarati',
+  'mr': 'Marathi',
+  'pa': 'Punjabi',
+  'or': 'Odia',
+  'as': 'Assamese',
+};
+
+const getSystemPrompt = (language: string, cropName: string, cropNameHindi: string) => {
+  const langName = languageNames[language] || 'English';
+  
+  if (language === 'hi') {
+    return `आप एक विशेषज्ञ कृषि वैज्ञानिक और फसल रोग विशेषज्ञ हैं। आपको फसल की तस्वीर का विश्लेषण करना है और निम्नलिखित जानकारी हिंदी में देनी है:
+
+1. **रोग की पहचान**: रोग का नाम और प्रकार
+2. **लक्षण**: दिखाई देने वाले लक्षणों का विस्तृत विवरण
+3. **कारण**: रोग के कारण (फफूंद, बैक्टीरिया, वायरस, कीट आदि)
+4. **उपचार**: 
+   - रासायनिक उपचार (दवाइयों के नाम और मात्रा)
+   - जैविक/प्राकृतिक उपचार
+5. **उर्वरक सिफारिश**: 
+   - उर्वरक का नाम
+   - अनुमानित कीमत (₹ में)
+   - उपयोग की विधि
+6. **रोकथाम**: भविष्य में रोग से बचाव के उपाय
+
+यदि पत्ता स्वस्थ दिखता है, तो इसकी पुष्टि करें और स्वस्थ फसल बनाए रखने के लिए सुझाव दें।`;
+  }
+  
+  return `You are an expert agricultural scientist and crop disease specialist. Analyze the crop image and provide the following information in ${langName} language:
+
+1. **Disease Identification**: Name and type of disease detected
+2. **Symptoms**: Detailed description of visible symptoms
+3. **Causes**: Root cause of the disease (fungal, bacterial, viral, pest, etc.)
+4. **Treatment**:
+   - Chemical treatments (pesticide/fungicide names and dosage)
+   - Organic/natural remedies
+5. **Fertilizer Recommendations**:
+   - Fertilizer name
+   - Approximate price (in ₹)
+   - Application method
+6. **Prevention**: Steps to prevent future occurrence
+
+If the leaf appears healthy, confirm this and provide tips for maintaining crop health.
+
+IMPORTANT: Respond entirely in ${langName} language.`;
+};
+
+const getUserPrompt = (language: string, cropName: string, cropNameHindi: string) => {
+  if (language === 'hi') {
+    return `यह ${cropNameHindi || cropName} की तस्वीर है। कृपया इसका विश्लेषण करें और किसी भी रोग या समस्या की पहचान करें।`;
+  }
+  
+  const langName = languageNames[language] || 'English';
+  return `This is an image of ${cropName}. Please analyze it and identify any diseases or issues. Respond in ${langName}.`;
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -20,41 +85,8 @@ serve(async (req) => {
 
     console.log(`Analyzing crop: ${cropName} in language: ${language}`);
 
-    const systemPrompt = language === 'hi' 
-      ? `आप एक विशेषज्ञ कृषि वैज्ञानिक और फसल रोग विशेषज्ञ हैं। आपको फसल की तस्वीर का विश्लेषण करना है और निम्नलिखित जानकारी हिंदी में देनी है:
-
-1. **रोग की पहचान**: रोग का नाम और प्रकार
-2. **लक्षण**: दिखाई देने वाले लक्षणों का विस्तृत विवरण
-3. **कारण**: रोग के कारण (फफूंद, बैक्टीरिया, वायरस, कीट आदि)
-4. **उपचार**: 
-   - रासायनिक उपचार (दवाइयों के नाम और मात्रा)
-   - जैविक/प्राकृतिक उपचार
-5. **उर्वरक सिफारिश**: 
-   - उर्वरक का नाम
-   - अनुमानित कीमत (₹ में)
-   - उपयोग की विधि
-6. **रोकथाम**: भविष्य में रोग से बचाव के उपाय
-
-यदि पत्ता स्वस्थ दिखता है, तो इसकी पुष्टि करें और स्वस्थ फसल बनाए रखने के लिए सुझाव दें।`
-      : `You are an expert agricultural scientist and crop disease specialist. Analyze the crop image and provide the following information:
-
-1. **Disease Identification**: Name and type of disease detected
-2. **Symptoms**: Detailed description of visible symptoms
-3. **Causes**: Root cause of the disease (fungal, bacterial, viral, pest, etc.)
-4. **Treatment**:
-   - Chemical treatments (pesticide/fungicide names and dosage)
-   - Organic/natural remedies
-5. **Fertilizer Recommendations**:
-   - Fertilizer name
-   - Approximate price (in ₹)
-   - Application method
-6. **Prevention**: Steps to prevent future occurrence
-
-If the leaf appears healthy, confirm this and provide tips for maintaining crop health.`;
-
-    const userPrompt = language === 'hi'
-      ? `यह ${cropNameHindi || cropName} की तस्वीर है। कृपया इसका विश्लेषण करें और किसी भी रोग या समस्या की पहचान करें।`
-      : `This is an image of ${cropName}. Please analyze it and identify any diseases or issues.`;
+    const systemPrompt = getSystemPrompt(language, cropName, cropNameHindi);
+    const userPrompt = getUserPrompt(language, cropName, cropNameHindi);
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',

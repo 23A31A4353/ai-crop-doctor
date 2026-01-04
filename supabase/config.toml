@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.crop-chat]
 verify_jwt = false
+
+[functions.generate-disease-video]
+verify_jwt = false

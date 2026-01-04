@@ -5,6 +5,54 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Language code to language name mapping
+const languageNames: Record<string, string> = {
+  'hi': 'Hindi',
+  'en': 'English',
+  'ta': 'Tamil',
+  'te': 'Telugu',
+  'kn': 'Kannada',
+  'ml': 'Malayalam',
+  'bn': 'Bengali',
+  'gu': 'Gujarati',
+  'mr': 'Marathi',
+  'pa': 'Punjabi',
+  'or': 'Odia',
+  'as': 'Assamese',
+};
+
+const getSystemPrompt = (language: string, cropName: string, cropNameHindi: string, previousDiagnosis: string) => {
+  const langName = languageNames[language] || 'English';
+  
+  if (language === 'hi') {
+    return `आप एक विशेषज्ञ कृषि सलाहकार हैं जो ${cropNameHindi || cropName} की खेती में किसानों की मदद करते हैं। 
+
+पिछला निदान: ${previousDiagnosis || 'कोई नहीं'}
+
+किसान के सवालों का जवाब हिंदी में दें। जवाब में शामिल करें:
+- स्पष्ट और व्यावहारिक सलाह
+- उर्वरक/दवाइयों के नाम और कीमत (₹ में)
+- कदम-दर-कदम निर्देश
+- स्थानीय बाजार में उपलब्ध उत्पादों के नाम
+
+संक्षिप्त लेकिन पूर्ण जवाब दें।`;
+  }
+  
+  return `You are an expert agricultural advisor helping farmers with ${cropName} cultivation.
+
+Previous diagnosis: ${previousDiagnosis || 'None'}
+
+Answer the farmer's questions in ${langName} language with:
+- Clear and practical advice
+- Specific fertilizer/pesticide names and prices (in ₹)
+- Step-by-step instructions
+- Names of products available in local markets
+
+Keep responses concise but complete.
+
+IMPORTANT: Respond entirely in ${langName} language.`;
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -18,31 +66,9 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    console.log(`Chat query for crop: ${cropName}, message: ${message}`);
+    console.log(`Chat query for crop: ${cropName}, language: ${language}, message: ${message}`);
 
-    const systemPrompt = language === 'hi'
-      ? `आप एक विशेषज्ञ कृषि सलाहकार हैं जो ${cropNameHindi || cropName} की खेती में किसानों की मदद करते हैं। 
-
-पिछला निदान: ${previousDiagnosis || 'कोई नहीं'}
-
-किसान के सवालों का जवाब हिंदी में दें। जवाब में शामिल करें:
-- स्पष्ट और व्यावहारिक सलाह
-- उर्वरक/दवाइयों के नाम और कीमत (₹ में)
-- कदम-दर-कदम निर्देश
-- स्थानीय बाजार में उपलब्ध उत्पादों के नाम
-
-संक्षिप्त लेकिन पूर्ण जवाब दें।`
-      : `You are an expert agricultural advisor helping farmers with ${cropName} cultivation.
-
-Previous diagnosis: ${previousDiagnosis || 'None'}
-
-Answer the farmer's questions with:
-- Clear and practical advice
-- Specific fertilizer/pesticide names and prices (in ₹)
-- Step-by-step instructions
-- Names of products available in local markets
-
-Keep responses concise but complete.`;
+    const systemPrompt = getSystemPrompt(language, cropName, cropNameHindi, previousDiagnosis);
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
