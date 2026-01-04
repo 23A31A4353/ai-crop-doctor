@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Language } from '@/lib/languages';
 import { Crop } from '@/lib/crops';
 import { getMockWeatherData, getFarmingTips, indianRegions, WeatherData, FarmingTip } from '@/lib/weather';
+import { getTranslations } from '@/lib/translations';
 import { Button } from '@/components/ui/button';
 import { Cloud, Droplets, Wind, ThermometerSun, MapPin, RefreshCw, AlertTriangle, CheckCircle, Info } from 'lucide-react';
 
@@ -15,7 +16,12 @@ export const WeatherWidget = ({ language, crop }: WeatherWidgetProps) => {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [tips, setTips] = useState<FarmingTip[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const isHindi = language.code === 'hi';
+  const [showAllRegions, setShowAllRegions] = useState(false);
+  const t = getTranslations(language);
+
+  const getLocalizedText = (en: string, hi: string) => {
+    return language.code === 'hi' ? hi : en;
+  };
 
   useEffect(() => {
     loadWeather();
@@ -48,18 +54,8 @@ export const WeatherWidget = ({ language, crop }: WeatherWidgetProps) => {
     }
   };
 
-  const texts = {
-    title: isHindi ? 'मौसम और खेती सलाह' : 'Weather & Farming Tips',
-    selectRegion: isHindi ? 'क्षेत्र चुनें' : 'Select Region',
-    temperature: isHindi ? 'तापमान' : 'Temperature',
-    humidity: isHindi ? 'नमी' : 'Humidity',
-    wind: isHindi ? 'हवा' : 'Wind',
-    rainfall: isHindi ? 'वर्षा' : 'Rainfall',
-    forecast: isHindi ? '5-दिन का पूर्वानुमान' : '5-Day Forecast',
-    farmingTips: isHindi ? 'खेती सुझाव' : 'Farming Recommendations',
-    refresh: isHindi ? 'ताज़ा करें' : 'Refresh',
-    rainChance: isHindi ? 'बारिश' : 'Rain',
-  };
+  // Show more regions including Andhra Pradesh prominently
+  const displayedRegions = showAllRegions ? indianRegions : indianRegions.slice(0, 8);
 
   if (isLoading || !weather) {
     return (
@@ -79,7 +75,7 @@ export const WeatherWidget = ({ language, crop }: WeatherWidgetProps) => {
           <div className="p-3 rounded-xl bg-gradient-to-br from-accent/20 to-secondary/20">
             <Cloud className="w-6 h-6 text-accent" />
           </div>
-          <h2 className="text-xl font-bold">{texts.title}</h2>
+          <h2 className="text-xl font-bold">{t.weatherTitle}</h2>
         </div>
         <Button size="sm" variant="ghost" onClick={loadWeather}>
           <RefreshCw className="w-4 h-4" />
@@ -90,10 +86,10 @@ export const WeatherWidget = ({ language, crop }: WeatherWidgetProps) => {
       <div className="mb-6">
         <label className="text-sm text-muted-foreground mb-2 block">
           <MapPin className="w-4 h-4 inline mr-1" />
-          {texts.selectRegion}
+          {t.selectRegion}
         </label>
-        <div className="flex gap-2 overflow-x-auto pb-2">
-          {indianRegions.slice(0, 6).map((region) => (
+        <div className="flex flex-wrap gap-2 pb-2">
+          {displayedRegions.map((region) => (
             <Button
               key={region.id}
               variant={selectedRegion.id === region.id ? 'default' : 'outline'}
@@ -101,9 +97,19 @@ export const WeatherWidget = ({ language, crop }: WeatherWidgetProps) => {
               onClick={() => setSelectedRegion(region)}
               className="flex-shrink-0"
             >
-              {isHindi ? region.nameHindi : region.name}
+              {getLocalizedText(region.name, region.nameHindi)}
             </Button>
           ))}
+          {!showAllRegions && indianRegions.length > 8 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowAllRegions(true)}
+              className="flex-shrink-0"
+            >
+              +{indianRegions.length - 8} {language.code === 'hi' ? 'और' : 'more'}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -115,7 +121,7 @@ export const WeatherWidget = ({ language, crop }: WeatherWidgetProps) => {
             <div>
               <div className="text-4xl font-bold">{weather.temperature}°C</div>
               <div className="text-muted-foreground">
-                {isHindi ? weather.conditionHindi : weather.condition}
+                {getLocalizedText(weather.condition, weather.conditionHindi)}
               </div>
             </div>
           </div>
@@ -140,7 +146,7 @@ export const WeatherWidget = ({ language, crop }: WeatherWidgetProps) => {
 
       {/* 5-Day Forecast */}
       <div className="mb-6">
-        <h3 className="font-semibold mb-3">{texts.forecast}</h3>
+        <h3 className="font-semibold mb-3">{t.forecast}</h3>
         <div className="grid grid-cols-5 gap-2">
           {weather.forecast.map((day, index) => (
             <div
@@ -148,7 +154,7 @@ export const WeatherWidget = ({ language, crop }: WeatherWidgetProps) => {
               className="text-center p-2 rounded-lg bg-card border border-border"
             >
               <div className="text-xs font-medium text-muted-foreground">
-                {isHindi ? day.dayHindi : day.day}
+                {getLocalizedText(day.day, day.dayHindi)}
               </div>
               <div className="text-2xl my-1">{day.icon}</div>
               <div className="text-sm font-semibold">{day.tempHigh}°</div>
@@ -167,7 +173,7 @@ export const WeatherWidget = ({ language, crop }: WeatherWidgetProps) => {
       <div>
         <h3 className="font-semibold mb-3 flex items-center gap-2">
           <ThermometerSun className="w-5 h-5 text-secondary" />
-          {texts.farmingTips}
+          {t.farmingTips}
         </h3>
         <div className="space-y-3">
           {tips.map((tip) => (
@@ -177,7 +183,7 @@ export const WeatherWidget = ({ language, crop }: WeatherWidgetProps) => {
             >
               <span className="text-xl">{tip.icon}</span>
               <div className="flex-1">
-                <p className="text-sm">{isHindi ? tip.tipHindi : tip.tip}</p>
+                <p className="text-sm">{getLocalizedText(tip.tip, tip.tipHindi)}</p>
               </div>
               {getPriorityIcon(tip.priority)}
             </div>

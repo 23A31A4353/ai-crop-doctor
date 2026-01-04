@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { Language } from '@/lib/languages';
 import { Crop } from '@/lib/crops';
 import { getCropCareTasks, CareTask } from '@/lib/cropCare';
+import { getTranslations } from '@/lib/translations';
 import { Button } from '@/components/ui/button';
 import { Calendar, Droplets, Leaf, Bug, Bell, ChevronRight } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface CropCareCalendarProps {
   language: Language;
@@ -13,7 +15,11 @@ interface CropCareCalendarProps {
 export const CropCareCalendar = ({ language, crop }: CropCareCalendarProps) => {
   const [activeType, setActiveType] = useState<'all' | 'watering' | 'fertilizing' | 'pestControl'>('all');
   const tasks = getCropCareTasks(crop.id);
-  const isHindi = language.code === 'hi';
+  const t = getTranslations(language);
+
+  const getLocalizedText = (en: string, hi: string) => {
+    return language.code === 'hi' ? hi : en;
+  };
 
   const filteredTasks = activeType === 'all' 
     ? tasks 
@@ -35,15 +41,20 @@ export const CropCareCalendar = ({ language, crop }: CropCareCalendarProps) => {
     }
   };
 
-  const texts = {
-    title: isHindi ? 'फसल देखभाल कैलेंडर' : 'Crop Care Calendar',
-    subtitle: isHindi ? 'आपकी फसल के लिए अनुस्मारक' : 'Reminders for your crop',
-    all: isHindi ? 'सभी' : 'All',
-    watering: isHindi ? 'सिंचाई' : 'Watering',
-    fertilizing: isHindi ? 'उर्वरक' : 'Fertilizing',
-    pestControl: isHindi ? 'कीट नियंत्रण' : 'Pest Control',
-    frequency: isHindi ? 'आवृत्ति' : 'Frequency',
-    setReminder: isHindi ? 'अनुस्मारक सेट करें' : 'Set Reminder',
+  const handleSetReminder = (task: CareTask) => {
+    const taskTitle = getLocalizedText(task.title, task.titleHindi);
+    toast.success(
+      language.code === 'hi' 
+        ? `${taskTitle} के लिए अनुस्मारक सेट किया गया` 
+        : `Reminder set for ${taskTitle}`
+    );
+  };
+
+  const filterLabels = {
+    all: t.all,
+    watering: t.watering,
+    fertilizing: t.fertilizing,
+    pestControl: t.pestControl,
   };
 
   return (
@@ -54,9 +65,9 @@ export const CropCareCalendar = ({ language, crop }: CropCareCalendarProps) => {
           <Calendar className="w-6 h-6 text-primary" />
         </div>
         <div>
-          <h2 className="text-xl font-bold">{texts.title}</h2>
+          <h2 className="text-xl font-bold">{t.cropCalendar}</h2>
           <p className="text-sm text-muted-foreground">
-            {crop.icon} {isHindi ? crop.nameHindi : crop.name} - {texts.subtitle}
+            {crop.icon} {getLocalizedText(crop.name, crop.nameHindi)} - {t.reminders}
           </p>
         </div>
       </div>
@@ -72,7 +83,7 @@ export const CropCareCalendar = ({ language, crop }: CropCareCalendarProps) => {
             className={`flex-shrink-0 ${activeType === type ? 'bg-primary' : ''}`}
           >
             {type === 'all' ? '📋' : type === 'watering' ? '💧' : type === 'fertilizing' ? '🌱' : '🐛'}
-            <span className="ml-2">{texts[type]}</span>
+            <span className="ml-2">{filterLabels[type]}</span>
           </Button>
         ))}
       </div>
@@ -88,14 +99,14 @@ export const CropCareCalendar = ({ language, crop }: CropCareCalendarProps) => {
               <div className="text-3xl">{task.icon}</div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-lg mb-1">
-                  {isHindi ? task.titleHindi : task.title}
+                  {getLocalizedText(task.title, task.titleHindi)}
                 </h3>
                 <p className="text-sm text-muted-foreground mb-2">
-                  {isHindi ? task.descriptionHindi : task.description}
+                  {getLocalizedText(task.description, task.descriptionHindi)}
                 </p>
                 <div className="flex items-center gap-2 text-sm">
                   <span className="px-2 py-1 rounded-full bg-background/50 font-medium">
-                    ⏰ {texts.frequency}: {isHindi ? task.frequencyHindi : task.frequency}
+                    ⏰ {t.frequency}: {getLocalizedText(task.frequency, task.frequencyHindi)}
                   </span>
                 </div>
               </div>
@@ -103,9 +114,10 @@ export const CropCareCalendar = ({ language, crop }: CropCareCalendarProps) => {
                 size="sm"
                 variant="ghost"
                 className="flex-shrink-0"
+                onClick={() => handleSetReminder(task)}
               >
                 <Bell className="w-4 h-4 mr-1" />
-                <span className="hidden md:inline">{texts.setReminder}</span>
+                <span className="hidden md:inline">{t.setReminder}</span>
                 <ChevronRight className="w-4 h-4 md:hidden" />
               </Button>
             </div>

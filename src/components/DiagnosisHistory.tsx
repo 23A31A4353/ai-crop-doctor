@@ -22,19 +22,31 @@ interface DiagnosisHistoryProps {
   onSelectDiagnosis?: (diagnosis: DiagnosisRecord) => void;
 }
 
+// Translations for all supported languages
+const getHistoryTranslations = (langCode: string) => {
+  const translations: Record<string, { title: string; noHistory: string; delete: string; loading: string }> = {
+    hi: { title: 'पिछली जाँच', noHistory: 'कोई पिछली जाँच नहीं', delete: 'हटाएं', loading: 'लोड हो रहा है...' },
+    en: { title: 'Diagnosis History', noHistory: 'No previous diagnoses', delete: 'Delete', loading: 'Loading...' },
+    ta: { title: 'முந்தைய ஆய்வுகள்', noHistory: 'முந்தைய ஆய்வுகள் இல்லை', delete: 'நீக்கு', loading: 'ஏற்றுகிறது...' },
+    te: { title: 'మునుపటి పరీక్షలు', noHistory: 'మునుపటి పరీక్షలు లేవు', delete: 'తొలగించు', loading: 'లోడ్ అవుతోంది...' },
+    kn: { title: 'ಹಿಂದಿನ ಪರೀಕ್ಷೆಗಳು', noHistory: 'ಹಿಂದಿನ ಪರೀಕ್ಷೆಗಳಿಲ್ಲ', delete: 'ಅಳಿಸಿ', loading: 'ಲೋಡ್ ಆಗುತ್ತಿದೆ...' },
+    ml: { title: 'മുൻ പരിശോധനകൾ', noHistory: 'മുൻ പരിശോധനകൾ ഇല്ല', delete: 'ഇല്ലാതാക്കുക', loading: 'ലോഡ് ചെയ്യുന്നു...' },
+    bn: { title: 'আগের পরীক্ষা', noHistory: 'কোন আগের পরীক্ষা নেই', delete: 'মুছুন', loading: 'লোড হচ্ছে...' },
+    gu: { title: 'અગાઉની તપાસ', noHistory: 'કોઈ અગાઉની તપાસ નથી', delete: 'કાઢી નાખો', loading: 'લોડ થઈ રહ્યું છે...' },
+    mr: { title: 'मागील तपासण्या', noHistory: 'मागील तपासण्या नाहीत', delete: 'हटवा', loading: 'लोड होत आहे...' },
+    pa: { title: 'ਪਿਛਲੀਆਂ ਜਾਂਚਾਂ', noHistory: 'ਕੋਈ ਪਿਛਲੀਆਂ ਜਾਂਚਾਂ ਨਹੀਂ', delete: 'ਮਿਟਾਓ', loading: 'ਲੋਡ ਹੋ ਰਿਹਾ ਹੈ...' },
+    or: { title: 'ପୂର୍ବ ପରୀକ୍ଷା', noHistory: 'କୌଣସି ପୂର୍ବ ପରୀକ୍ଷା ନାହିଁ', delete: 'ବିଲୋପ କରନ୍ତୁ', loading: 'ଲୋଡ୍ ହେଉଛି...' },
+    as: { title: 'পূৰ্বৰ পৰীক্ষা', noHistory: 'কোনো পূৰ্বৰ পৰীক্ষা নাই', delete: 'মচি পেলাওক', loading: 'লোড হৈ আছে...' },
+  };
+  return translations[langCode] || translations['en'];
+};
+
 export const DiagnosisHistory = ({ language, onSelectDiagnosis }: DiagnosisHistoryProps) => {
   const [history, setHistory] = useState<DiagnosisRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const { user } = useAuth();
-  const t = getTranslations(language);
-
-  const texts = {
-    title: language.code === 'hi' ? 'पिछली जाँच' : 'Diagnosis History',
-    noHistory: language.code === 'hi' ? 'कोई पिछली जाँच नहीं' : 'No previous diagnoses',
-    delete: language.code === 'hi' ? 'हटाएं' : 'Delete',
-    loading: language.code === 'hi' ? 'लोड हो रहा है...' : 'Loading...',
-  };
+  const texts = getHistoryTranslations(language.code);
 
   useEffect(() => {
     if (user) {
@@ -73,16 +85,25 @@ export const DiagnosisHistory = ({ language, onSelectDiagnosis }: DiagnosisHisto
       if (error) throw error;
       
       setHistory(prev => prev.filter(item => item.id !== id));
-      toast.success(language.code === 'hi' ? 'जाँच हटा दी गई' : 'Diagnosis deleted');
+      toast.success(texts.delete);
     } catch (error) {
       console.error('Error deleting:', error);
-      toast.error(language.code === 'hi' ? 'हटाने में त्रुटि' : 'Error deleting');
+      toast.error(texts.delete);
     }
   };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString(language.code === 'hi' ? 'hi-IN' : 'en-US', {
+    const locale = language.code === 'hi' ? 'hi-IN' : 
+                   language.code === 'ta' ? 'ta-IN' :
+                   language.code === 'te' ? 'te-IN' :
+                   language.code === 'kn' ? 'kn-IN' :
+                   language.code === 'ml' ? 'ml-IN' :
+                   language.code === 'bn' ? 'bn-IN' :
+                   language.code === 'gu' ? 'gu-IN' :
+                   language.code === 'mr' ? 'mr-IN' :
+                   language.code === 'pa' ? 'pa-IN' : 'en-US';
+    return date.toLocaleDateString(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
