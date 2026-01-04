@@ -8,6 +8,7 @@ import { useSpeech } from '@/hooks/useSpeech';
 import { ChatMessage, Message } from './ChatMessage';
 import { getTranslations } from '@/lib/translations';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
 interface ChatInterfaceProps {
@@ -21,10 +22,12 @@ export const ChatInterface = ({ language, crop, imageData }: ChatInterfaceProps)
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [currentDiagnosis, setCurrentDiagnosis] = useState('');
+  const [diagnosisSaved, setDiagnosisSaved] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { speak, isSpeaking, startListening, stopListening, isListening } = useSpeech({ 
     lang: language.speechCode 
   });
+  const { user } = useAuth();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -35,6 +38,29 @@ export const ChatInterface = ({ language, crop, imageData }: ChatInterfaceProps)
   }, [messages]);
 
   const t = getTranslations(language);
+
+  // Save diagnosis to history
+  const saveDiagnosis = async (diagnosis: string) => {
+    if (!user || diagnosisSaved) return;
+    
+    try {
+      const { error } = await supabase
+        .from('diagnosis_history')
+        .insert({
+          user_id: user.id,
+          crop_id: crop.id,
+          crop_name: language.code === 'hi' ? crop.nameHindi : crop.name,
+          image_url: imageData.startsWith('data:') ? null : imageData, // Don't store base64 to save space
+          diagnosis: diagnosis,
+          language: language.code,
+        });
+
+      if (error) throw error;
+      setDiagnosisSaved(true);
+    } catch (error) {
+      console.error('Error saving diagnosis:', error);
+    }
+  };
 
   // Initial AI diagnosis when component mounts
   useEffect(() => {
@@ -67,6 +93,9 @@ export const ChatInterface = ({ language, crop, imageData }: ChatInterfaceProps)
           timestamp: new Date(),
         };
         setMessages([assistantMessage]);
+        
+        // Save diagnosis for logged-in users
+        await saveDiagnosis(diagnosis);
         
         // Auto-speak the completion message
         const completionMsg = language.code === 'hi' 

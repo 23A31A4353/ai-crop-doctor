@@ -1,5 +1,6 @@
 import { Leaf, Mic, Camera, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { UserMenu } from '@/components/UserMenu';
 
 interface WelcomeScreenProps {
   onStart: () => void;
@@ -28,7 +29,12 @@ export const WelcomeScreen = ({ onStart }: WelcomeScreenProps) => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 relative">
+      {/* User Menu */}
+      <div className="absolute top-4 right-4">
+        <UserMenu />
+      </div>
+
       {/* Hero Section */}
       <div className="text-center mb-12 animate-slide-up">
         <div className="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-gradient-to-br from-primary to-primary/80 mb-6 shadow-glow floating-icon">
