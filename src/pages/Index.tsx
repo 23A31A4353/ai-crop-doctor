@@ -10,10 +10,12 @@ import { ChatInterface } from '@/components/ChatInterface';
 import { CropCareCalendar } from '@/components/CropCareCalendar';
 import { WeatherWidget } from '@/components/WeatherWidget';
 import { Marketplace } from '@/components/Marketplace';
+import { DiagnosisHistory } from '@/components/DiagnosisHistory';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, Calendar, Cloud, Store } from 'lucide-react';
+import { MessageSquare, Calendar, Cloud, Store, History } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
-type AppStep = 'welcome' | 'language' | 'crop' | 'image' | 'chat';
+type AppStep = 'welcome' | 'language' | 'crop' | 'image' | 'chat' | 'history';
 type DashboardTab = 'chat' | 'calendar' | 'weather' | 'marketplace';
 
 const ChatDashboard = ({ language, crop, imageData }: { language: Language; crop: Crop; imageData: string }) => {
@@ -71,6 +73,7 @@ const Index = () => {
   const [selectedLanguage, setSelectedLanguage] = useState<Language | null>(null);
   const [selectedCrop, setSelectedCrop] = useState<Crop | null>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const { user } = useAuth();
 
   const stepIndex = {
     welcome: 0,
@@ -78,12 +81,15 @@ const Index = () => {
     crop: 2,
     image: 3,
     chat: 4,
+    history: 4,
   };
 
   const handleBack = () => {
     const steps: AppStep[] = ['welcome', 'language', 'crop', 'image', 'chat'];
     const currentIndex = steps.indexOf(currentStep);
-    if (currentIndex > 0) {
+    if (currentStep === 'history') {
+      setCurrentStep('chat');
+    } else if (currentIndex > 0) {
       setCurrentStep(steps[currentIndex - 1]);
     }
   };
@@ -110,6 +116,10 @@ const Index = () => {
     setCurrentStep('chat');
   };
 
+  const handleViewHistory = () => {
+    setCurrentStep('history');
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {currentStep !== 'welcome' && (
@@ -117,6 +127,8 @@ const Index = () => {
           currentStep={stepIndex[currentStep]}
           onBack={handleBack}
           onHome={handleHome}
+          language={selectedLanguage || undefined}
+          onViewHistory={user ? handleViewHistory : undefined}
         />
       )}
 
@@ -160,6 +172,12 @@ const Index = () => {
             crop={selectedCrop}
             imageData={uploadedImage}
           />
+        )}
+
+        {currentStep === 'history' && selectedLanguage && (
+          <div className="pt-8">
+            <DiagnosisHistory language={selectedLanguage} />
+          </div>
         )}
       </main>
     </div>

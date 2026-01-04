@@ -1,13 +1,17 @@
 import { Leaf, ArrowLeft, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { UserMenu } from '@/components/UserMenu';
+import { Language } from '@/lib/languages';
 
 interface HeaderProps {
   currentStep: number;
   onBack: () => void;
   onHome: () => void;
+  language?: Language;
+  onViewHistory?: () => void;
 }
 
-export const Header = ({ currentStep, onBack, onHome }: HeaderProps) => {
+export const Header = ({ currentStep, onBack, onHome, language, onViewHistory }: HeaderProps) => {
   return (
     <header className="w-full bg-card/80 backdrop-blur-lg border-b border-border sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -30,11 +34,14 @@ export const Header = ({ currentStep, onBack, onHome }: HeaderProps) => {
           </div>
         </div>
 
-        {currentStep > 0 && (
-          <Button variant="ghost" size="icon" onClick={onHome}>
-            <Home className="w-5 h-5" />
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {currentStep > 0 && (
+            <Button variant="ghost" size="icon" onClick={onHome}>
+              <Home className="w-5 h-5" />
+            </Button>
+          )}
+          <UserMenu language={language} onViewHistory={onViewHistory} />
+        </div>
       </div>
 
       {/* Progress bar */}
