@@ -11,16 +11,20 @@ import { CropCareCalendar } from '@/components/CropCareCalendar';
 import { WeatherWidget } from '@/components/WeatherWidget';
 import { Marketplace } from '@/components/Marketplace';
 import { DiagnosisHistory } from '@/components/DiagnosisHistory';
+import { ShopMap } from '@/components/ShopMap';
+import { OrderTracking } from '@/components/OrderTracking';
 import { Button } from '@/components/ui/button';
 import { getTranslations } from '@/lib/translations';
-import { MessageSquare, Calendar, Cloud, Store } from 'lucide-react';
+import { MessageSquare, Calendar, Cloud, Store, MapPin, Truck } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 type AppStep = 'welcome' | 'language' | 'crop' | 'image' | 'chat' | 'history';
 type DashboardTab = 'chat' | 'calendar' | 'weather' | 'marketplace';
+type MarketplaceView = 'main' | 'map' | 'orders';
 
 const ChatDashboard = ({ language, crop, imageData }: { language: Language; crop: Crop; imageData: string }) => {
   const [activeTab, setActiveTab] = useState<DashboardTab>('chat');
+  const [marketplaceView, setMarketplaceView] = useState<MarketplaceView>('main');
   const t = getTranslations(language);
 
   const tabs = [
@@ -40,7 +44,10 @@ const ChatDashboard = ({ language, crop, imageData }: { language: Language; crop
               key={tab.id}
               variant={activeTab === tab.id ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => {
+                setActiveTab(tab.id);
+                if (tab.id === 'marketplace') setMarketplaceView('main');
+              }}
               className="flex-shrink-0"
             >
               <tab.icon className="w-4 h-4 mr-2" />
@@ -62,7 +69,40 @@ const ChatDashboard = ({ language, crop, imageData }: { language: Language; crop
           <WeatherWidget language={language} crop={crop} />
         )}
         {activeTab === 'marketplace' && (
-          <Marketplace language={language} crop={crop} />
+          <>
+            {marketplaceView === 'main' && (
+              <div className="space-y-4">
+                {/* Quick Actions for Map and Orders */}
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setMarketplaceView('map')}
+                    className="flex-1"
+                  >
+                    <MapPin className="w-4 h-4 mr-2" />
+                    {t.storeLocator}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setMarketplaceView('orders')}
+                    className="flex-1"
+                  >
+                    <Truck className="w-4 h-4 mr-2" />
+                    {t.orderTracking}
+                  </Button>
+                </div>
+                <Marketplace language={language} crop={crop} />
+              </div>
+            )}
+            {marketplaceView === 'map' && (
+              <ShopMap language={language} onClose={() => setMarketplaceView('main')} />
+            )}
+            {marketplaceView === 'orders' && (
+              <OrderTracking language={language} onClose={() => setMarketplaceView('main')} />
+            )}
+          </>
         )}
       </div>
     </div>

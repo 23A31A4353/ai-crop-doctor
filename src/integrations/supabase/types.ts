@@ -47,6 +47,48 @@ export type Database = {
         }
         Relationships: []
       }
+      orders: {
+        Row: {
+          created_at: string
+          delivery_address: string | null
+          estimated_delivery: string | null
+          id: string
+          items: Json
+          shop_id: string
+          shop_name: string
+          status: string
+          total_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_address?: string | null
+          estimated_delivery?: string | null
+          id?: string
+          items: Json
+          shop_id: string
+          shop_name: string
+          status?: string
+          total_amount: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          delivery_address?: string | null
+          estimated_delivery?: string | null
+          id?: string
+          items?: Json
+          shop_id?: string
+          shop_name?: string
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
