@@ -65,11 +65,11 @@ export const Marketplace = ({ language, crop }: MarketplaceProps) => {
   };
 
   const openDirections = (shop: Shop) => {
-    // Open Google Maps with directions
-    const address = encodeURIComponent(shop.address);
-    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${address}`;
+    // Open Google Maps with directions from current location to shop
+    const destination = `${shop.latitude},${shop.longitude}`;
+    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination}&travelmode=driving`;
     window.open(mapsUrl, '_blank');
-    toast.success(language.code === 'hi' ? 'मैप खुल रहा है...' : 'Opening map...');
+    toast.success(language.code === 'hi' ? 'Google Maps में दिशा-निर्देश खुल रहे हैं...' : 'Opening directions in Google Maps...');
   };
 
   const callShop = (phone: string) => {
