@@ -12,6 +12,8 @@ export interface Shop {
   isOpen: boolean;
   openTime: string;
   closeTime: string;
+  latitude: number;
+  longitude: number;
 }
 
 export interface Product {
@@ -39,12 +41,14 @@ export const mockShops: Shop[] = [
     rating: 4.5,
     distance: '1.2 km',
     distanceHindi: '1.2 किमी',
-    address: 'Main Market, Near Bus Stand',
-    addressHindi: 'मुख्य बाजार, बस स्टैंड के पास',
+    address: 'Main Market, Near Bus Stand, Vijayawada',
+    addressHindi: 'मुख्य बाजार, बस स्टैंड के पास, विजयवाड़ा',
     phone: '+91 98765 43210',
     isOpen: true,
     openTime: '8:00 AM',
     closeTime: '8:00 PM',
+    latitude: 16.5062,
+    longitude: 80.6480,
   },
   {
     id: 'shop-2',
@@ -54,12 +58,14 @@ export const mockShops: Shop[] = [
     rating: 4.2,
     distance: '2.5 km',
     distanceHindi: '2.5 किमी',
-    address: 'Agricultural Market Yard',
-    addressHindi: 'कृषि मंडी परिसर',
+    address: 'Agricultural Market Yard, Guntur',
+    addressHindi: 'कृषि मंडी परिसर, गुंटूर',
     phone: '+91 98765 43211',
     isOpen: true,
     openTime: '7:00 AM',
     closeTime: '7:00 PM',
+    latitude: 16.3067,
+    longitude: 80.4365,
   },
   {
     id: 'shop-3',
@@ -69,12 +75,14 @@ export const mockShops: Shop[] = [
     rating: 4.8,
     distance: '3.8 km',
     distanceHindi: '3.8 किमी',
-    address: 'New Colony, Sector 5',
-    addressHindi: 'न्यू कॉलोनी, सेक्टर 5',
+    address: 'New Colony, Sector 5, Visakhapatnam',
+    addressHindi: 'न्यू कॉलोनी, सेक्टर 5, विशाखापत्तनम',
     phone: '+91 98765 43212',
     isOpen: false,
     openTime: '9:00 AM',
     closeTime: '6:00 PM',
+    latitude: 17.6868,
+    longitude: 83.2185,
   },
   {
     id: 'shop-4',
@@ -84,12 +92,14 @@ export const mockShops: Shop[] = [
     rating: 4.6,
     distance: '4.2 km',
     distanceHindi: '4.2 किमी',
-    address: 'Industrial Area, Phase 2',
-    addressHindi: 'औद्योगिक क्षेत्र, फेज 2',
+    address: 'Industrial Area, Phase 2, Tirupati',
+    addressHindi: 'औद्योगिक क्षेत्र, फेज 2, तिरुपति',
     phone: '+91 98765 43213',
     isOpen: true,
     openTime: '8:30 AM',
     closeTime: '7:30 PM',
+    latitude: 13.6288,
+    longitude: 79.4192,
   },
   {
     id: 'shop-5',
@@ -99,12 +109,14 @@ export const mockShops: Shop[] = [
     rating: 4.3,
     distance: '5.0 km',
     distanceHindi: '5.0 किमी',
-    address: 'Highway Road, Km 5',
-    addressHindi: 'हाईवे रोड, किमी 5',
+    address: 'Highway Road, Km 5, Kakinada',
+    addressHindi: 'हाईवे रोड, किमी 5, काकीनाडा',
     phone: '+91 98765 43214',
     isOpen: true,
     openTime: '8:00 AM',
     closeTime: '8:00 PM',
+    latitude: 16.9891,
+    longitude: 82.2475,
   },
 ];
 
