@@ -170,15 +170,35 @@ export const ChatInterface = ({ language, crop, imageData }: ChatInterfaceProps)
         
       } catch (error: any) {
         console.error('Error analyzing crop:', error);
-        toast.error(getLocalizedText('Analysis failed', 'विश्लेषण में त्रुटि'));
+        
+        const errorMsg = error?.message || '';
+        const is402 = errorMsg.includes('402') || errorMsg.includes('credits');
+        const is429 = errorMsg.includes('429') || errorMsg.includes('Rate limit');
+        
+        let userErrorText: string;
+        if (is402) {
+          userErrorText = getLocalizedText(
+            '⚠️ AI credits are exhausted. Please add credits in Settings → Workspace → Usage to continue using crop analysis.',
+            '⚠️ AI क्रेडिट समाप्त हो गए हैं। फसल विश्लेषण जारी रखने के लिए कृपया सेटिंग्स → वर्कस्पेस → उपयोग में क्रेडिट जोड़ें।'
+          );
+        } else if (is429) {
+          userErrorText = getLocalizedText(
+            '⏳ Too many requests. Please wait a moment and try again.',
+            '⏳ बहुत सारे अनुरोध। कृपया कुछ समय प्रतीक्षा करें और पुनः प्रयास करें।'
+          );
+        } else {
+          userErrorText = getLocalizedText(
+            'Sorry, there was an issue analyzing the crop. Please try again.',
+            'माफ़ करें, फसल का विश्लेषण करने में समस्या हुई। कृपया पुनः प्रयास करें।'
+          );
+        }
+        
+        toast.error(is402 ? getLocalizedText('Credits exhausted', 'क्रेडिट समाप्त') : getLocalizedText('Analysis failed', 'विश्लेषण में त्रुटि'));
         
         const errorMessage: Message = {
           id: Date.now().toString(),
           role: 'assistant',
-          content: getLocalizedText(
-            'Sorry, there was an issue analyzing the crop. Please try again.',
-            'माफ़ करें, फसल का विश्लेषण करने में समस्या हुई। कृपया पुनः प्रयास करें।'
-          ),
+          content: userErrorText,
           timestamp: new Date(),
         };
         setMessages([errorMessage]);
