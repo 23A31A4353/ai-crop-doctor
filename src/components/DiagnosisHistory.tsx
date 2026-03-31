@@ -146,6 +146,15 @@ export const DiagnosisHistory = ({ language, onSelectDiagnosis }: DiagnosisHisto
           <h2 className="text-xl font-semibold">{texts.title}</h2>
         </div>
 
+        {isOffline && (
+          <div className="flex items-center gap-2 p-3 mb-4 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-700">
+            <WifiOff className="w-4 h-4 flex-shrink-0" />
+            <span className="text-sm">
+              {language.code === 'hi' ? 'ऑफ़लाइन मोड - कैश्ड डेटा दिखाया जा रहा है' : 'Offline mode - showing cached data'}
+            </span>
+          </div>
+        )}
+
         {loading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
