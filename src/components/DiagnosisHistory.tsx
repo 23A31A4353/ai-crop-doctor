@@ -44,6 +44,7 @@ const getHistoryTranslations = (langCode: string) => {
 
 export const DiagnosisHistory = ({ language, onSelectDiagnosis }: DiagnosisHistoryProps) => {
   const [history, setHistory] = useState<DiagnosisRecord[]>([]);
+  const [isOffline, setIsOffline] = useState(!isOnline());
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const { user } = useAuth();
