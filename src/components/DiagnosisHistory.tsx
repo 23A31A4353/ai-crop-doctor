@@ -3,9 +3,10 @@ import { Language } from '@/lib/languages';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { History, Trash2, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { History, Trash2, ChevronDown, ChevronUp, Loader2, WifiOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { getTranslations } from '@/lib/translations';
+import { cacheDiagnosisHistory, getCachedDiagnosisHistory, isOnline } from '@/lib/offlineStorage';
 
 interface DiagnosisRecord {
   id: string;
