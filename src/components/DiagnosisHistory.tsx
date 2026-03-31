@@ -60,6 +60,18 @@ export const DiagnosisHistory = ({ language, onSelectDiagnosis }: DiagnosisHisto
     if (!user) return;
     
     setLoading(true);
+    
+    if (!isOnline()) {
+      setIsOffline(true);
+      const cached = getCachedDiagnosisHistory();
+      if (cached) {
+        setHistory(cached as DiagnosisRecord[]);
+      }
+      setLoading(false);
+      return;
+    }
+    
+    setIsOffline(false);
     try {
       const { data, error } = await supabase
         .from('diagnosis_history')
@@ -70,8 +82,16 @@ export const DiagnosisHistory = ({ language, onSelectDiagnosis }: DiagnosisHisto
 
       if (error) throw error;
       setHistory(data || []);
+      // Cache for offline use
+      cacheDiagnosisHistory(data || []);
     } catch (error) {
       console.error('Error fetching history:', error);
+      // Fall back to cache on network error
+      const cached = getCachedDiagnosisHistory();
+      if (cached) {
+        setHistory(cached as DiagnosisRecord[]);
+        setIsOffline(true);
+      }
     } finally {
       setLoading(false);
     }
