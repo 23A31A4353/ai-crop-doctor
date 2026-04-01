@@ -1,4 +1,5 @@
-import { Leaf, Mic, Camera, MessageSquare } from 'lucide-react';
+import { Mic, Camera, MessageSquare } from 'lucide-react';
+import logoImg from '@/assets/ai_crop_doctor_logo.jpg';
 import { Button } from '@/components/ui/button';
 import { UserMenu } from '@/components/UserMenu';
 
@@ -37,9 +38,7 @@ export const WelcomeScreen = ({ onStart }: WelcomeScreenProps) => {
 
       {/* Hero Section */}
       <div className="text-center mb-12 animate-slide-up">
-        <div className="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-gradient-to-br from-primary to-primary/80 mb-6 shadow-glow floating-icon">
-          <Leaf className="w-12 h-12 text-primary-foreground" />
-        </div>
+        <img src={logoImg} alt="AI Crop Doctor" className="w-24 h-24 rounded-3xl mb-6 shadow-glow floating-icon object-contain" />
         
         <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
           AI CROP DOCTOR
