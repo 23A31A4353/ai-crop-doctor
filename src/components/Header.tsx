@@ -27,7 +27,7 @@ export const Header = ({ currentStep, onBack, onHome, language, onViewHistory }:
             </div>
             <div>
               <h1 className="font-bold text-lg leading-tight text-foreground">
-                Crop Doctor
+                AI CROP DOCTOR
               </h1>
               <p className="text-xs text-muted-foreground">फसल चिकित्सक</p>
             </div>

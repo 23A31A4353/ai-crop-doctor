@@ -42,7 +42,7 @@ export const WelcomeScreen = ({ onStart }: WelcomeScreenProps) => {
         </div>
         
         <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-          Crop Doctor
+          AI CROP DOCTOR
         </h1>
         <h2 className="text-2xl md:text-3xl font-semibold text-primary mb-2">
           फसल चिकित्सक
