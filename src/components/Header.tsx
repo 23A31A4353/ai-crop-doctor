@@ -1,4 +1,5 @@
-import { Leaf, ArrowLeft, Home } from 'lucide-react';
+import { ArrowLeft, Home } from 'lucide-react';
+import logoImg from '@/assets/ai_crop_doctor_logo.jpg';
 import { Button } from '@/components/ui/button';
 import { UserMenu } from '@/components/UserMenu';
 import { Language } from '@/lib/languages';
