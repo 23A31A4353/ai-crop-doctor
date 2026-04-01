@@ -1,4 +1,5 @@
-import { Leaf, Mic, Camera, MessageSquare } from 'lucide-react';
+import { Mic, Camera, MessageSquare } from 'lucide-react';
+import logoImg from '@/assets/ai_crop_doctor_logo.jpg';
 import { Button } from '@/components/ui/button';
 import { UserMenu } from '@/components/UserMenu';
 
