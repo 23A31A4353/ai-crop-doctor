@@ -23,9 +23,7 @@ export const Header = ({ currentStep, onBack, onHome, language, onViewHistory }:
             </Button>
           )}
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
-              <Leaf className="w-6 h-6 text-primary-foreground" />
-            </div>
+            <img src={logoImg} alt="AI Crop Doctor" className="w-10 h-10 rounded-xl object-contain" />
             <div>
               <h1 className="font-bold text-lg leading-tight text-foreground">
                 AI CROP DOCTOR
