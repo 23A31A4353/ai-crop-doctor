@@ -1,4 +1,5 @@
 import { Volume2 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { Button } from '@/components/ui/button';
 
 export interface Message {
@@ -40,7 +41,9 @@ export const ChatMessage = ({ message, onSpeak, isSpeaking }: ChatMessageProps) 
               : 'bg-card border border-border rounded-tl-sm'
           }`}
         >
-          <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+          <div className="whitespace-pre-wrap leading-relaxed prose prose-sm max-w-none dark:prose-invert prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:my-2">
+            <ReactMarkdown>{message.content}</ReactMarkdown>
+          </div>
           
           {message.imageUrl && (
             <div className="mt-3">
