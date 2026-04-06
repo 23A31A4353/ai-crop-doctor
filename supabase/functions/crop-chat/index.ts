@@ -12,7 +12,7 @@ const RequestSchema = z.object({
   cropName: z.string().min(1).max(100),
   cropNameHindi: z.string().max(100).optional().default(''),
   language: z.string().regex(/^[a-z]{2}$/, 'Invalid language code'),
-  previousDiagnosis: z.string().max(5000).optional().default(''),
+  previousDiagnosis: z.string().max(20000).optional().default(''),
 });
 
 const languageNames: Record<string, string> = {
