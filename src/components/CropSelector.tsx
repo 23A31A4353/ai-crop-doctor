@@ -97,7 +97,11 @@ export const CropSelector = ({ selectedCrop, onSelectCrop, language }: CropSelec
             }`}
             onClick={() => handleSelectWithVoice(crop)}
           >
-            <span className="text-3xl">{crop.icon}</span>
+            {crop.image ? (
+              <img src={crop.image} alt={crop.name} loading="lazy" width={48} height={48} className="w-12 h-12 object-contain" />
+            ) : (
+              <span className="text-3xl">{crop.icon}</span>
+            )}
             <span className="font-semibold text-sm">
               {language.code === 'hi' ? crop.nameHindi : crop.name}
             </span>
