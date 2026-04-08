@@ -1,25 +1,38 @@
+import wheatImg from '@/assets/crops/wheat.png';
+import pearlMilletImg from '@/assets/crops/pearl-millet.png';
+import sorghumImg from '@/assets/crops/sorghum.png';
+import chickpeaImg from '@/assets/crops/chickpea.png';
+import pigeonPeaImg from '@/assets/crops/pigeon-pea.png';
+import lentilImg from '@/assets/crops/lentil.png';
+import mungBeanImg from '@/assets/crops/mung-bean.png';
+import blackGramImg from '@/assets/crops/black-gram.png';
+import soybeanImg from '@/assets/crops/soybean.png';
+import mustardImg from '@/assets/crops/mustard.png';
+import sunflowerImg from '@/assets/crops/sunflower.png';
+
 export interface Crop {
   id: string;
   name: string;
   nameHindi: string;
   icon: string;
+  image?: string;
   category: 'cereals' | 'pulses' | 'vegetables' | 'fruits' | 'oilseeds' | 'spices' | 'cash';
 }
 
 export const indianCrops: Crop[] = [
   // Cereals
   { id: 'rice', name: 'Rice', nameHindi: 'चावल', icon: '🌾', category: 'cereals' },
-  { id: 'wheat', name: 'Wheat', nameHindi: 'गेहूं', icon: '🌾', category: 'cereals' },
+  { id: 'wheat', name: 'Wheat', nameHindi: 'गेहूं', icon: '🌾', image: wheatImg, category: 'cereals' },
   { id: 'maize', name: 'Maize', nameHindi: 'मक्का', icon: '🌽', category: 'cereals' },
-  { id: 'bajra', name: 'Pearl Millet', nameHindi: 'बाजरा', icon: '🌾', category: 'cereals' },
-  { id: 'jowar', name: 'Sorghum', nameHindi: 'ज्वार', icon: '🌾', category: 'cereals' },
+  { id: 'bajra', name: 'Pearl Millet', nameHindi: 'बाजरा', icon: '🌾', image: pearlMilletImg, category: 'cereals' },
+  { id: 'jowar', name: 'Sorghum', nameHindi: 'ज्वार', icon: '🌾', image: sorghumImg, category: 'cereals' },
   
   // Pulses
-  { id: 'chickpea', name: 'Chickpea', nameHindi: 'चना', icon: '🫘', category: 'pulses' },
-  { id: 'pigeon-pea', name: 'Pigeon Pea', nameHindi: 'अरहर', icon: '🫘', category: 'pulses' },
-  { id: 'lentil', name: 'Lentil', nameHindi: 'मसूर', icon: '🫘', category: 'pulses' },
-  { id: 'mung', name: 'Mung Bean', nameHindi: 'मूंग', icon: '🫘', category: 'pulses' },
-  { id: 'urad', name: 'Black Gram', nameHindi: 'उड़द', icon: '🫘', category: 'pulses' },
+  { id: 'chickpea', name: 'Chickpea', nameHindi: 'चना', icon: '🫘', image: chickpeaImg, category: 'pulses' },
+  { id: 'pigeon-pea', name: 'Pigeon Pea', nameHindi: 'अरहर', icon: '🫘', image: pigeonPeaImg, category: 'pulses' },
+  { id: 'lentil', name: 'Lentil', nameHindi: 'मसूर', icon: '🫘', image: lentilImg, category: 'pulses' },
+  { id: 'mung', name: 'Mung Bean', nameHindi: 'मूंग', icon: '🫘', image: mungBeanImg, category: 'pulses' },
+  { id: 'urad', name: 'Black Gram', nameHindi: 'उड़द', icon: '🫘', image: blackGramImg, category: 'pulses' },
   
   // Vegetables
   { id: 'tomato', name: 'Tomato', nameHindi: 'टमाटर', icon: '🍅', category: 'vegetables' },
@@ -41,9 +54,9 @@ export const indianCrops: Crop[] = [
   
   // Oilseeds
   { id: 'groundnut', name: 'Groundnut', nameHindi: 'मूंगफली', icon: '🥜', category: 'oilseeds' },
-  { id: 'mustard', name: 'Mustard', nameHindi: 'सरसों', icon: '🌻', category: 'oilseeds' },
-  { id: 'sunflower', name: 'Sunflower', nameHindi: 'सूरजमुखी', icon: '🌻', category: 'oilseeds' },
-  { id: 'soybean', name: 'Soybean', nameHindi: 'सोयाबीन', icon: '🫘', category: 'oilseeds' },
+  { id: 'mustard', name: 'Mustard', nameHindi: 'सरसों', icon: '🌻', image: mustardImg, category: 'oilseeds' },
+  { id: 'sunflower', name: 'Sunflower', nameHindi: 'सूरजमुखी', icon: '🌻', image: sunflowerImg, category: 'oilseeds' },
+  { id: 'soybean', name: 'Soybean', nameHindi: 'सोयाबीन', icon: '🫘', image: soybeanImg, category: 'oilseeds' },
   
   // Cash Crops
   { id: 'cotton', name: 'Cotton', nameHindi: 'कपास', icon: '🌿', category: 'cash' },
