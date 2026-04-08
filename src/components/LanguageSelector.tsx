@@ -12,8 +12,16 @@ export const LanguageSelector = ({ selectedLanguage, onSelectLanguage }: Languag
   const { speak, isSpeaking } = useSpeech();
 
   const handleSelectWithVoice = (language: Language) => {
+    // Speak the native name immediately for quick audio feedback
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(language.nativeName);
+      utterance.lang = language.speechCode;
+      utterance.rate = 1.1;
+      utterance.volume = 1;
+      window.speechSynthesis.speak(utterance);
+    }
     onSelectLanguage(language);
-    speak(`${language.nativeName} selected`, language.speechCode);
   };
 
   return (
