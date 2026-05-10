@@ -25,16 +25,27 @@ export const CropSelector = ({ selectedCrop, onSelectCrop, language }: CropSelec
     return matchesCategory && matchesSearch;
   });
 
+  const speakNow = (text: string) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = language.speechCode;
+      utterance.rate = 1.1;
+      utterance.volume = 1;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
   const handleSelectWithVoice = (crop: Crop) => {
-    onSelectCrop(crop);
     const speakText = language.code === 'hi' ? crop.nameHindi : crop.name;
-    speak(`${speakText} selected`);
+    speakNow(speakText);
+    onSelectCrop(crop);
   };
 
   const speakCropName = (crop: Crop, e: React.MouseEvent) => {
     e.stopPropagation();
     const speakText = language.code === 'hi' ? crop.nameHindi : crop.name;
-    speak(speakText);
+    speakNow(speakText);
   };
 
   return (
