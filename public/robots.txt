@@ -12,3 +12,5 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+Sitemap: https://ai-crop-doctor.lovable.app/sitemap.xml
