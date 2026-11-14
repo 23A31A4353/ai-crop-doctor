@@ -50,19 +50,7 @@ export const UserMenu = ({ language, onViewHistory }: UserMenuProps) => {
     );
   }
 
-  if (!user) {
-    return (
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => navigate('/auth')}
-        className="gap-2"
-      >
-        <User className="w-4 h-4" />
-        {texts.signIn}
-      </Button>
-    );
-  }
+  if (!user) return null;
 
   return (
     <DropdownMenu>
